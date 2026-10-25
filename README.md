@@ -29,6 +29,8 @@ npx expo run:android
 
 This builds a development build (not Expo Go) and starts Metro. After the first build, `npm start` is enough.
 
+**Windows:** the native build fails with "Filename longer than 260 characters" if the project sits in a deep folder (for example inside OneDrive). Clone it to a short path such as `C:\dev\parka`, or turn on Windows long path support.
+
 Tests:
 
 ```bash
