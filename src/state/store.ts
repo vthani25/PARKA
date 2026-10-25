@@ -3,7 +3,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { MEDS_ON_TIME_ID, PRESET_TRACKABLES } from '../logic/checkin';
+import { dayScore, MEDS_ON_TIME_ID, PRESET_TRACKABLES } from '../logic/checkin';
 import { defaultReminders, nearestPendingTime, rebuildReminders } from '../logic/reminders';
 import { dateKey, newId, timeOf } from '../logic/time';
 import {
@@ -87,6 +87,8 @@ type Actions = {
 
   setTrackables(chosen: Trackable[], custom: Trackable[]): void;
   saveCheckIn(checkIn: CheckIn): void;
+  /** Add ratings, notes or off periods to a day's check-in, keeping what is already there. */
+  mergeCheckIn(date: string, patch: Partial<Omit<CheckIn, 'id' | 'date' | 'dayScore'>>): void;
   saveHospitalCard(card: HospitalCard): void;
 
   loadSampleData(): void;
@@ -194,6 +196,13 @@ export const useApp = create<AppState>()(
 
       setTrackables: (chosen, custom) => set({ trackables: chosen, customTrackables: custom }),
       saveCheckIn: (checkIn) => set((s) => ({ checkIns: [...s.checkIns.filter((c) => c.date !== checkIn.date), checkIn] })),
+      mergeCheckIn: (date, patch) =>
+        set((s) => {
+          const old = s.checkIns.find((c) => c.date === date) ?? { id: newId(), date, entries: [], offHours: [], dayScore: 0 };
+          const merged = { ...old, ...patch };
+          merged.dayScore = dayScore(merged.entries);
+          return { checkIns: [...s.checkIns.filter((c) => c.date !== date), merged] };
+        }),
       saveHospitalCard: (card) => set({ hospitalCard: card }),
 
       loadSampleData: () => set(sampleData(get())),

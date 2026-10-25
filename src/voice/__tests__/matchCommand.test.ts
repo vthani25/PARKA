@@ -15,11 +15,16 @@ describe('matchCommand', () => {
     ['I am awake', 'im_awake'],
     ['log a dose', 'log_dose'],
     ['I took my pills', 'log_dose'],
+    ['I’m awake', 'im_awake'],
+    ['hello can you open my medications please', 'open_medications'],
+    ['okay take me home now', 'go_home'],
+    ['I want to add a new medication', 'add_medication'],
+    ['hey Parka show me my hospital card', 'show_hospital_card'],
   ])('"%s" -> %s', (said, action) => {
     expect(matchCommand(said)?.action).toBe(action);
   });
 
-  it.each(['', 'banana', 'what is the weather', 'please', 'card', 'open'])('refuses unclear speech: "%s"', (said) => {
+  it.each(['', 'banana', 'what is the weather', 'please', 'card', 'open', 'hello', 'hello I am finished'])('refuses unclear speech: "%s"', (said) => {
     expect(matchCommand(said)).toBeNull();
   });
 

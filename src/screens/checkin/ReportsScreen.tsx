@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { Button, Card, Choice, Gap, Heading, Label, T } from '../../components/ui';
+import { isRated } from '../../logic/checkin';
 import { dailyReportHtml, dailyReportText, weekDates, weeklyReportHtml, weeklyReportText } from '../../logic/reports';
 import { atTime, dateKey } from '../../logic/time';
 import { ScreenProps } from '../../navigation/types';
@@ -37,7 +38,10 @@ export function ReportsScreen({ navigation }: ScreenProps<'Reports'>) {
     }
   };
 
-  const week = weekDates(today).map((date) => ({ date, score: checkIns.find((c) => c.date === date)?.dayScore }));
+  const week = weekDates(today).map((date) => {
+    const c = checkIns.find((x) => x.date === date);
+    return { date, score: isRated(c) ? c.dayScore : undefined };
+  });
 
   return (
     <Screen>

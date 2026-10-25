@@ -2,7 +2,7 @@
 // Facts only. No advice or interpretation.
 
 import { CheckIn, DayState, DoseLog, HospitalCard, Medication, Schedule, Trackable } from '../types';
-import { MEDS_ON_TIME_ID, offHoursByTimeOfDay, SCORE_WORDS } from './checkin';
+import { isRated, MEDS_ON_TIME_ID, offHoursByTimeOfDay, SCORE_WORDS } from './checkin';
 import { findLog } from './reminders';
 import { addDays, atTime, formatDay, formatDose, formatHour, formatTime, timeOf } from './time';
 
@@ -45,7 +45,7 @@ export function dailyReportText(d: ReportData, date: string): string {
   const c = d.checkIns.find((x) => x.date === date);
   const lines = [`PARKA daily report${d.name ? ` for ${d.name}` : ''}`, formatDay(date), ''];
   if (c) {
-    lines.push(`Day score: ${c.dayScore} out of 100`);
+    lines.push(isRated(c) ? `Day score: ${c.dayScore} out of 100` : 'Trackables not rated yet');
     if (c.overall) lines.push(`Overall: ${c.overall}/5 ${SCORE_WORDS[c.overall]}`);
     lines.push('', ...c.entries.map((e) => entryText(d, e)));
     lines.push('', `Felt off: ${c.offHours.length ? c.offHours.map(formatHour).join(', ') : 'None'}`);
@@ -74,7 +74,10 @@ function weekSummary(d: ReportData, endDate: string) {
   const onTime = due.filter((l) => Math.abs(l.loggedAt - atTime(l.date, l.scheduledTime).getTime()) <= 15 * 60000).length;
   return {
     dates,
-    scores: dates.map((date) => ({ date, score: week.find((c) => c.date === date)?.dayScore })),
+    scores: dates.map((date) => {
+      const c = week.find((x) => x.date === date);
+      return { date, score: isRated(c) ? c.dayScore : undefined };
+    }),
     averages,
     onTimePct: due.length ? Math.round((onTime / due.length) * 100) : undefined,
     offHours: offHoursByTimeOfDay(week),
@@ -122,7 +125,7 @@ export function dailyReportHtml(d: ReportData, date: string): string {
     <div>${esc(d.name ?? '')} · ${esc(formatDay(date))}</div>
     ${
       c
-        ? `<h2>Day score: ${c.dayScore} out of 100</h2>
+        ? `<h2>${isRated(c) ? `Day score: ${c.dayScore} out of 100` : 'Trackables not rated yet'}</h2>
       ${c.overall ? `<p>Overall: ${c.overall}/5 ${SCORE_WORDS[c.overall]}</p>` : ''}
       <table><tr><th>Trackable</th><th>Score</th></tr>
       ${c.entries.map((e) => `<tr><td>${esc(entryText(d, e).split(':')[0])}</td><td>${esc(entryText(d, e).split(': ').slice(1).join(': '))}</td></tr>`).join('')}

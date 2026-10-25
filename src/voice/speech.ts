@@ -12,14 +12,16 @@ export function say(text: string) {
   Speech.speak(text, { language: 'en-US', rate: 0.9 });
 }
 
-type Options = { onFinal: (text: string) => void; onNothingHeard?: () => void; continuous?: boolean };
+/** onFinal gets the best transcript, plus the recognizer's other guesses (best first). */
+type Options = { onFinal: (text: string, alternatives: string[]) => void; onNothingHeard?: () => void; continuous?: boolean; alternatives?: number };
 
 /** Live transcription for one owner. `transcript` updates as the person speaks. */
-export function useListener(owner: string, { onFinal, onNothingHeard, continuous = false }: Options) {
+export function useListener(owner: string, { onFinal, onNothingHeard, continuous = false, alternatives = 1 }: Options) {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
   const gotFinal = useRef(false);
+  const lastHeard = useRef('');
   const mine = () => currentOwner === owner;
 
   useSpeechRecognitionEvent('start', () => mine() && setListening(true));
@@ -27,9 +29,10 @@ export function useListener(owner: string, { onFinal, onNothingHeard, continuous
     if (!mine()) return;
     const text = e.results[0]?.transcript ?? '';
     setTranscript(text);
+    if (text) lastHeard.current = text;
     if (e.isFinal) {
       gotFinal.current = true;
-      onFinal(text);
+      onFinal(text, e.results.map((r) => r.transcript).filter(Boolean));
     }
   });
   useSpeechRecognitionEvent('error', (e) => {
@@ -41,13 +44,19 @@ export function useListener(owner: string, { onFinal, onNothingHeard, continuous
     if (!mine()) return;
     setListening(false);
     currentOwner = null;
-    if (!gotFinal.current) onNothingHeard?.();
+    if (gotFinal.current) return;
+    // Some phones end without a final result. Use the last words we showed on screen.
+    if (lastHeard.current) {
+      gotFinal.current = true;
+      onFinal(lastHeard.current, [lastHeard.current]);
+    } else onNothingHeard?.();
   });
 
   async function start() {
     setError(null);
     setTranscript('');
     gotFinal.current = false;
+    lastHeard.current = '';
     const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!permission.granted) {
       setError('Microphone permission is off. Turn it on in Android settings to use voice.');
@@ -56,7 +65,7 @@ export function useListener(owner: string, { onFinal, onNothingHeard, continuous
     Speech.stop();
     if (currentOwner) ExpoSpeechRecognitionModule.abort();
     currentOwner = owner;
-    ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous, maxAlternatives: 1 });
+    ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous, maxAlternatives: alternatives });
   }
 
   function stop() {

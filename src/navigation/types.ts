@@ -21,6 +21,7 @@ export type RootStackParamList = {
   CheckInItem: { index: number };
   OffHours: undefined;
   CheckInNotes: undefined;
+  CheckInOverall: undefined;
   CheckInSummary: undefined;
   Reports: undefined;
   HospitalCard: undefined;

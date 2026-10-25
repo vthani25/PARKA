@@ -2,12 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { SmileyBadge, SmileyPicker } from '../../components/Smileys';
-import { Button, Card, Choice, Gap, Heading, Label, Row, Stepper, T, TextField, useSteadyPress } from '../../components/ui';
+import { Button, Card, Choice, Divider, Gap, Heading, Label, Row, Stepper, T, TextField, useSteadyPress } from '../../components/ui';
 import { useNow } from '../../hooks/useNow';
 import {
+  checkInStreak,
   compareToHistory,
-  dayScore,
+  encouragement,
   hoursFromLongPresses,
+  isRated,
   MAX_TRACKABLES,
   medsOnTimeScore,
   MIN_TRACKABLES,
@@ -15,25 +17,31 @@ import {
   SCORE_FACES,
   scoreAgainstGoal,
 } from '../../logic/checkin';
-import { dateKey, formatHour, newId } from '../../logic/time';
+import { addDays, atTime, dateKey, formatHour, newId } from '../../logic/time';
 import { ScreenProps } from '../../navigation/types';
 import { useCheckInDraft } from '../../state/checkinDraft';
 import { useApp } from '../../state/store';
 import { colors, RADIUS, spacing, BUTTON_HEIGHT } from '../../theme/tokens';
-import { Trackable } from '../../types';
+import { CheckIn, Trackable } from '../../types';
 import { useListener } from '../../voice/speech';
 
 // ---- Check-in home ----
 
 export function CheckInHomeScreen({ navigation }: ScreenProps<'CheckInHome'>) {
   const now = useNow();
+  const today = dateKey(now);
   const trackables = useApp((s) => s.trackables);
-  const savedToday = useApp((s) => s.checkIns.some((c) => c.date === dateKey(now)));
-  const start = () => {
+  const checkIns = useApp((s) => s.checkIns);
+  const todayCheckIn = checkIns.find((c) => c.date === today);
+  const rated = isRated(todayCheckIn);
+  const streak = checkInStreak(checkIns, today);
+
+  const logTrackables = () => {
     useCheckInDraft.getState().reset();
     if (trackables.length === 0) navigation.navigate('ChooseTrackables', { thenStart: true });
     else navigation.navigate('CheckInItem', { index: 0 });
   };
+
   return (
     <Screen>
       <Card style={{ alignItems: 'center' }}>
@@ -49,22 +57,70 @@ export function CheckInHomeScreen({ navigation }: ScreenProps<'CheckInHome'>) {
           </T>
         </Row>
       </Card>
-      {savedToday ? (
-        <>
-          <Card tint>
+
+      {/* Today's score */}
+      <Card tint>
+        {rated ? (
+          <>
+            <T size="heading" bold color={colors.pine} accessibilityRole="header">{`Today: ${todayCheckIn.dayScore} out of 100`}</T>
+            <T size="large">{encouragement(todayCheckIn.dayScore, streak)}</T>
+          </>
+        ) : (
+          <>
             <T size="large" bold color={colors.pine}>
-              ✓ Today’s check-in is saved.
+              You haven’t rated today yet.
             </T>
-          </Card>
-          <Button label="See today’s summary" onPress={() => navigation.navigate('CheckInSummary')} />
-          <Button label="Redo today’s check-in" variant="outline" onPress={start} />
-        </>
-      ) : (
-        <Button label="Log Trackables" variant="red" onPress={start} accessibilityHint="Starts today’s check-in, one question per screen" />
-      )}
-      <Button label="Edit Trackables" onPress={() => navigation.navigate('ChooseTrackables')} />
+            <T size="body">{streak > 0 ? `You’re on a ${streak}-day streak. Keep it going!` : 'It only takes a minute. You’ve got this!'}</T>
+          </>
+        )}
+        {todayCheckIn?.note ? <T size="body">✓ Notes saved for today</T> : null}
+        {todayCheckIn && todayCheckIn.offHours.length > 0 ? <T size="body">{`✓ Off periods: ${todayCheckIn.offHours.map(formatHour).join(', ')}`}</T> : null}
+      </Card>
+
+      <Button
+        label={rated ? 'Rate Trackables Again' : 'Log Trackables'}
+        variant="red"
+        onPress={logTrackables}
+        accessibilityHint="Rate each thing you track, one per screen"
+      />
+      <Button label="Notes" onPress={() => navigation.navigate('CheckInNotes')} accessibilityHint="Write or speak notes, and add off periods" />
+      <Button label="Edit Trackables" onPress={() => navigation.navigate('ChooseTrackables')} accessibilityHint="Choose what you track and set goals" />
       <Button label="View / Share Reports" variant="red" onPress={() => navigation.navigate('Reports')} />
+
+      <DayScores checkIns={checkIns} today={today} />
     </Screen>
+  );
+}
+
+/** Score for each of the last 7 days. */
+function DayScores({ checkIns, today }: { checkIns: CheckIn[]; today: string }) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(today, -i));
+  return (
+    <Card>
+      <T size="large" bold accessibilityRole="header">
+        Your daily scores
+      </T>
+      <Gap size="sm" />
+      {days.map((day, i) => {
+        const c = checkIns.find((x) => x.date === day);
+        const score = isRated(c) ? c.dayScore : undefined;
+        const name = i === 0 ? 'Today' : atTime(day, '12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+        return (
+          <View key={day}>
+            {i > 0 && <Divider />}
+            <View style={styles.scoreRow} accessible accessibilityLabel={`${name}: ${score === undefined ? 'no score' : `${score} out of 100`}`}>
+              <T size="body" bold style={{ width: 96 }}>
+                {name}
+              </T>
+              <View style={styles.barTrack}>{score !== undefined && <View style={[styles.bar, { width: `${Math.max(score, 3)}%` }]} />}</View>
+              <T size="large" bold style={{ width: 48, textAlign: 'right' }}>
+                {score ?? '—'}
+              </T>
+            </View>
+          </View>
+        );
+      })}
+    </Card>
   );
 }
 
@@ -178,7 +234,7 @@ export function CheckInItemScreen({ navigation, route }: ScreenProps<'CheckInIte
 
   const goNext = () => {
     if (index + 1 < trackables.length) navigation.push('CheckInItem', { index: index + 1 });
-    else navigation.navigate('OffHours');
+    else navigation.navigate('CheckInOverall');
   };
 
   if (!t) return null;
@@ -251,44 +307,41 @@ export function CheckInItemScreen({ navigation, route }: ScreenProps<'CheckInIte
   );
 }
 
-// ---- When did you feel off today? ----
+// ---- Off periods (downtime): when did you feel off today? Opened from Notes. ----
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM
 
 export function OffHoursScreen({ navigation }: ScreenProps<'OffHours'>) {
-  const draft = useCheckInDraft();
   const presses = useApp((s) => s.metronomeStarts);
   const today = dateKey(new Date());
+  const saved = useApp((s) => s.checkIns.find((c) => c.date === today)?.offHours);
   const bandHours = useMemo(() => hoursFromLongPresses(presses.map((p) => p.timestamp), today), [presses, today]);
-  const [selected, setSelected] = useState<number[]>(draft.offHours.length ? draft.offHours : bandHours);
+  const [selected, setSelected] = useState<number[]>(saved?.length ? saved : bandHours);
 
   const toggle = (h: number) => setSelected(selected.includes(h) ? selected.filter((x) => x !== h) : [...selected, h].sort((a, b) => a - b));
-  const next = () => {
-    draft.set({ offHours: selected });
-    navigation.navigate('CheckInNotes');
-  };
-  const none = () => {
-    draft.set({ offHours: [] });
-    navigation.navigate('CheckInNotes');
+  const save = (hours: number[]) => {
+    useApp.getState().mergeCheckIn(today, { offHours: hours });
+    navigation.goBack();
   };
 
   return (
-    <Screen footer={<Button label="Next" onPress={next} />}>
+    <Screen footer={<Button label="Save off periods" onPress={() => save(selected)} />}>
       <Heading>When did you feel off today?</Heading>
-      {bandHours.length > 0 && (
-        <Card tint>
+      <Card tint>
+        <T size="body">Tap every hour you had downtime or felt “off”. Tap again to remove it.</T>
+        {bandHours.length > 0 && (
           <T size="body" bold>
-            {`Your band’s metronome was used at ${bandHours.map(formatHour).join(', ')}. Those hours are marked ♪ and already chosen. Keep or remove them.`}
+            {`Your band’s metronome was used at ${bandHours.map(formatHour).join(', ')}. Those hours are marked ♪.`}
           </T>
-        </Card>
-      )}
+        )}
+      </Card>
       <View style={styles.grid}>
         {HOURS.map((h) => (
           <HourButton key={h} hour={h} selected={selected.includes(h)} fromBand={bandHours.includes(h)} onPress={() => toggle(h)} />
         ))}
       </View>
       <Gap />
-      <Button label="None, I felt fine" variant="outline" onPress={none} />
+      <Button label="None, I felt fine" variant="outline" onPress={() => save([])} />
     </Screen>
   );
 }
@@ -310,40 +363,47 @@ function HourButton({ hour, selected, fromBand, onPress }: { hour: number; selec
   );
 }
 
-// ---- Notes and overall ----
+// ---- Notes: typed or spoken, plus off periods ----
 
 export function CheckInNotesScreen({ navigation }: ScreenProps<'CheckInNotes'>) {
-  const draft = useCheckInDraft();
-  const [note, setNote] = useState(draft.note);
-  const [overall, setOverall] = useState<number | undefined>(draft.overall);
+  const today = dateKey(new Date());
+  const saved = useApp((s) => s.checkIns.find((c) => c.date === today));
+  const [note, setNote] = useState(saved?.note ?? '');
+  const [done, setDone] = useState(false);
   const dictation = useListener('notes', {
     continuous: true,
     onFinal: (text) => setNote((n) => (n ? `${n} ${text}` : text)),
   });
+  const offHours = saved?.offHours ?? [];
 
   const save = () => {
     dictation.cancel();
-    const state = useApp.getState();
-    const entries = state.trackables.map((t) => draft.entries[t.id]).filter((e) => !!e);
-    const date = dateKey(new Date());
-    state.saveCheckIn({
-      id: newId(),
-      date,
-      entries,
-      offHours: draft.offHours,
-      overall,
-      note: note.trim() || undefined,
-      dayScore: dayScore(entries),
-    });
-    draft.reset();
-    navigation.reset({ index: 1, routes: [{ name: 'Dashboard' }, { name: 'CheckInSummary' }] });
+    useApp.getState().mergeCheckIn(today, { note: note.trim() || undefined });
+    setDone(true);
   };
 
+  if (done) {
+    return (
+      <Screen>
+        <Card style={{ alignItems: 'center' }}>
+          <T size="title" bold center color={colors.pine} accessibilityRole="header">
+            ✓ Notes saved
+          </T>
+          <Gap size="sm" />
+          <T size="large" center>
+            Thanks for writing it down. Your notes go in today’s report.
+          </T>
+        </Card>
+        <Button label="Back to Check-In" onPress={() => navigation.goBack()} />
+      </Screen>
+    );
+  }
+
   return (
-    <Screen footer={<Button label="Save" onPress={save} />}>
+    <Screen footer={<Button label="Save notes" onPress={save} />}>
       <Heading>Notes</Heading>
       <Card>
-        <TextField label="Anything to remember about today? (optional)" value={note} onChange={setNote} multiline placeholder="Type here, or tap Speak a note" />
+        <TextField label="Anything to remember about today?" value={note} onChange={setNote} multiline placeholder="Type here, or tap Speak a note" />
         {dictation.listening ? (
           <>
             <T size="body" bold color={colors.red} accessibilityLiveRegion="polite">
@@ -361,9 +421,34 @@ export function CheckInNotesScreen({ navigation }: ScreenProps<'CheckInNotes'>) 
       </Card>
       <Card>
         <T size="large" bold accessibilityRole="header">
-          Overall, how was today?
+          Off periods (downtime)
         </T>
+        <T size="body">{offHours.length ? `Off at: ${offHours.map(formatHour).join(', ')}` : 'None added today.'}</T>
         <Gap size="sm" />
+        <Button label={offHours.length ? 'Change off periods' : 'Add off periods'} variant="outline" onPress={() => navigation.navigate('OffHours')} />
+      </Card>
+    </Screen>
+  );
+}
+
+// ---- Overall, then save the ratings ----
+
+export function CheckInOverallScreen({ navigation }: ScreenProps<'CheckInOverall'>) {
+  const draft = useCheckInDraft();
+  const [overall, setOverall] = useState<number | undefined>(draft.overall);
+
+  const save = () => {
+    const state = useApp.getState();
+    const entries = state.trackables.map((t) => draft.entries[t.id]).filter((e) => !!e);
+    state.mergeCheckIn(dateKey(new Date()), { entries, overall });
+    draft.reset();
+    navigation.reset({ index: 2, routes: [{ name: 'Dashboard' }, { name: 'CheckInHome' }, { name: 'CheckInSummary' }] });
+  };
+
+  return (
+    <Screen footer={<Button label="Save and see my score" onPress={save} />}>
+      <Heading>Overall, how was today?</Heading>
+      <Card>
         <SmileyPicker label="Overall, how was today" value={overall} onChange={setOverall} />
       </Card>
     </Screen>
@@ -377,12 +462,13 @@ export function CheckInSummaryScreen({ navigation }: ScreenProps<'CheckInSummary
   const chosen = useApp((s) => s.trackables);
   const custom = useApp((s) => s.customTrackables);
   const trackables = [...chosen, ...custom, ...PRESET_TRACKABLES]; // chosen first: it has the person's goals
-  const today = checkIns.find((c) => c.date === dateKey(new Date()));
-  if (!today) {
+  const date = dateKey(new Date());
+  const today = checkIns.find((c) => c.date === date);
+  if (!isRated(today)) {
     return (
       <Screen>
         <Card>
-          <T size="large">No check-in saved today yet.</T>
+          <T size="large">You haven’t rated today yet. Tap Log Trackables to get your score.</T>
         </Card>
       </Screen>
     );
@@ -392,36 +478,45 @@ export function CheckInSummaryScreen({ navigation }: ScreenProps<'CheckInSummary
     <Screen>
       <Card style={{ alignItems: 'center' }}>
         <T size="title" bold center accessibilityRole="header">{`Score: ${today.dayScore} out of 100`}</T>
-        {comparison && <T size="large" center>{comparison}</T>}
+        <Gap size="sm" />
+        <T size="large" bold center color={colors.pine}>
+          {encouragement(today.dayScore, checkInStreak(checkIns, date))}
+        </T>
+        {comparison && <T size="body" center>{comparison}</T>}
       </Card>
       <Card>
-        {today.entries.map((e) => {
+        {today.entries.map((e, i) => {
           const t = trackables.find((x) => x.id === e.trackableId);
           return (
-            <Row key={e.trackableId} style={styles.summaryRow}>
-              <View style={{ flex: 1 }}>
-                <T size="large" bold>
-                  {t?.label ?? e.trackableId}
-                </T>
-                {t?.kind === 'measured' && <T size="body">{`${e.value} of ${t.goal} ${t.unit}`}</T>}
-                {t?.kind === 'auto' && <T size="body">From dose log</T>}
-              </View>
-              <SmileyBadge score={e.score} />
-            </Row>
+            <View key={e.trackableId}>
+              {i > 0 && <Divider />}
+              <Row style={styles.summaryRow}>
+                <View style={{ flex: 1 }}>
+                  <T size="large" bold>
+                    {t?.label ?? e.trackableId}
+                  </T>
+                  {t?.kind === 'measured' && <T size="body">{`${e.value} of ${t.goal} ${t.unit}`}</T>}
+                  {t?.kind === 'auto' && <T size="body">From dose log</T>}
+                </View>
+                <SmileyBadge score={e.score} />
+              </Row>
+            </View>
           );
         })}
-        {today.overall && (
-          <Row style={styles.summaryRow}>
-            <T size="large" bold style={{ flex: 1 }}>
-              Overall
-            </T>
-            <SmileyBadge score={today.overall} />
-          </Row>
-        )}
-        <T size="body" style={{ marginTop: spacing.sm }}>{`Felt off: ${today.offHours.length ? today.offHours.map(formatHour).join(', ') : 'None'}`}</T>
-        {today.note && <T size="body">{`Notes: ${today.note}`}</T>}
+        {today.overall ? (
+          <>
+            <Divider />
+            <Row style={styles.summaryRow}>
+              <T size="large" bold style={{ flex: 1 }}>
+                Overall
+              </T>
+              <SmileyBadge score={today.overall} />
+            </Row>
+          </>
+        ) : null}
       </Card>
-      <Button label="Done" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Dashboard' }] })} />
+      <Button label="Done" onPress={() => navigation.navigate('CheckInHome')} />
+      <Button label={today.note ? 'Edit notes' : 'Add notes or off periods'} variant="outline" onPress={() => navigation.navigate('CheckInNotes')} />
       <Button label="Share today’s report" variant="red" onPress={() => navigation.navigate('Reports')} />
     </Screen>
   );
@@ -440,5 +535,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hourSelected: { backgroundColor: colors.pine },
-  summaryRow: { borderBottomWidth: 2, borderBottomColor: colors.text, paddingVertical: spacing.sm },
+  summaryRow: { paddingVertical: spacing.sm },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 48 },
+  barTrack: { flex: 1, height: 22, justifyContent: 'center' },
+  bar: { height: 22, backgroundColor: colors.pine, borderRadius: 4 },
 });

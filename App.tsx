@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { band, startBand, todaysBandTimes } from './src/band';
 import { goTo, navigationRef, RootStackParamList } from './src/navigation/types';
-import { CheckInHomeScreen, CheckInItemScreen, CheckInNotesScreen, CheckInSummaryScreen, ChooseTrackablesScreen, OffHoursScreen } from './src/screens/checkin/CheckInScreens';
+import { CheckInHomeScreen, CheckInItemScreen, CheckInNotesScreen, CheckInOverallScreen, CheckInSummaryScreen, ChooseTrackablesScreen, OffHoursScreen } from './src/screens/checkin/CheckInScreens';
 import { ReportsScreen } from './src/screens/checkin/ReportsScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { HospitalCardEditScreen, HospitalCardScreen } from './src/screens/HospitalCardScreens';
@@ -101,6 +101,7 @@ export default function App() {
             <Stack.Screen name="CheckInItem" component={CheckInItemScreen} />
             <Stack.Screen name="OffHours" component={OffHoursScreen} />
             <Stack.Screen name="CheckInNotes" component={CheckInNotesScreen} />
+            <Stack.Screen name="CheckInOverall" component={CheckInOverallScreen} />
             <Stack.Screen name="CheckInSummary" component={CheckInSummaryScreen} />
             <Stack.Screen name="Reports" component={ReportsScreen} />
             <Stack.Screen name="HospitalCard" component={HospitalCardScreen} />

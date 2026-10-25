@@ -5,7 +5,7 @@ import { Button, T, useSteadyPress } from '../components/ui';
 import { goTo } from '../navigation/types';
 import { confirmAwake, logDoseNow } from '../services/actions';
 import { colors, RADIUS, spacing, TOUCH_TARGET } from '../theme/tokens';
-import { Match, matchCommand, VoiceAction } from './matchCommand';
+import { COMMANDS, Match, matchCommand, VoiceAction } from './matchCommand';
 import { say, useListener } from './speech';
 
 const micIcon = require('../assets/voice_icon.png');
@@ -63,7 +63,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState('');
 
   const listener = useListener('commands', {
-    onFinal: (text) => handleSpeech(text),
+    alternatives: 3,
+    onFinal: (text, alternatives) => handleSpeech([text, ...alternatives]),
     onNothingHeard: () => refuse(),
   });
 
@@ -72,8 +73,13 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     say(NOT_CAUGHT);
   }
 
-  async function handleSpeech(text: string) {
-    const found = matchCommand(text);
+  async function handleSpeech(guesses: string[]) {
+    // Use the first of the recognizer's guesses that is a clear command.
+    let found: Match | null = null;
+    for (const g of guesses) {
+      found = matchCommand(g);
+      if (found) break;
+    }
     if (!found) return refuse();
     setMatch(found);
     if (found.changesData) {
@@ -129,6 +135,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
                     {listener.transcript ? `“${listener.transcript}”` : 'Say a command, like “open medications”.'}
                   </T>
                 </View>
+                <CommandList />
                 {listener.error && (
                   <T size="body" color={colors.red} center>
                     {listener.error}
@@ -153,9 +160,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
             {phase === 'refused' && (
               <>
                 {listener.transcript ? <T size="body" center color={colors.muted}>{`I heard “${listener.transcript}”`}</T> : null}
-                <T size="heading" bold center style={{ marginVertical: spacing.lg }} accessibilityLiveRegion="assertive">
+                <T size="heading" bold center style={{ marginVertical: spacing.md }} accessibilityLiveRegion="assertive">
                   {NOT_CAUGHT}
                 </T>
+                <CommandList />
                 <Button label="Try again" onPress={tryAgain} />
                 <Button label="Close" variant="outline" onPress={close} />
               </>
@@ -176,7 +184,20 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** What you can say. Shown while listening and after an unclear command. */
+function CommandList() {
+  return (
+    <View style={styles.commands}>
+      <T size="body" bold>
+        You can say:
+      </T>
+      <T size="body">{COMMANDS.map((c) => `“${c.label}”`).join('  ·  ')}</T>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  commands: { backgroundColor: colors.pineTint, borderRadius: RADIUS, padding: spacing.md, marginBottom: spacing.md },
   mic: {
     width: TOUCH_TARGET + 8,
     height: TOUCH_TARGET + 8,
@@ -190,5 +211,5 @@ const styles = StyleSheet.create({
   },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: colors.white, borderTopLeftRadius: RADIUS * 2, borderTopRightRadius: RADIUS * 2, padding: spacing.lg },
-  transcript: { minHeight: 120, justifyContent: 'center', marginVertical: spacing.md },
+  transcript: { minHeight: 90, justifyContent: 'center', marginVertical: spacing.sm },
 });

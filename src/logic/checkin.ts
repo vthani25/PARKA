@@ -1,6 +1,6 @@
 import { CheckIn, CheckInEntry, DoseLog, Reminder, Trackable } from '../types';
 import { findLog } from './reminders';
-import { atTime } from './time';
+import { addDays, atTime } from './time';
 
 export const MIN_TRACKABLES = 5;
 export const MAX_TRACKABLES = 10;
@@ -85,9 +85,39 @@ export function hoursFromLongPresses(timestamps: number[], day: string): number[
   return [...new Set(hours)].sort((a, b) => a - b);
 }
 
-/** "Your best: 92. Your average: 74." Neutral facts, no advice. */
+/** A day counts as rated once at least one trackable has a score (notes alone don't make a score). */
+export function isRated(c: CheckIn | undefined): c is CheckIn {
+  return !!c && c.entries.length > 0;
+}
+
+/** Days in a row, ending today or yesterday, with a rated check-in. */
+export function checkInStreak(checkIns: CheckIn[], today: string): number {
+  const rated = new Set(checkIns.filter(isRated).map((c) => c.date));
+  let day = rated.has(today) ? today : addDays(today, -1);
+  let streak = 0;
+  while (rated.has(day)) {
+    streak++;
+    day = addDays(day, -1);
+  }
+  return streak;
+}
+
+/**
+ * A kind word for the day's score. Always encouraging, never a medical suggestion.
+ */
+export function encouragement(score: number, streak: number): string {
+  const base =
+    score >= 80
+      ? 'Great day! Keep doing what’s working for you.'
+      : score >= 60
+        ? 'Nice work. Every check-in helps you and your doctor see what helps.'
+        : 'Tough days happen. Checking in still counts, and you did it.';
+  return streak >= 2 ? `${base} That’s ${streak} days in a row!` : base;
+}
+
+/** "Your best: 92. Your average: 74." */
 export function compareToHistory(today: CheckIn, history: CheckIn[]): string | undefined {
-  const others = history.filter((c) => c.date !== today.date);
+  const others = history.filter((c) => c.date !== today.date && isRated(c));
   if (others.length === 0) return 'This is your first check-in.';
   const best = Math.max(...others.map((c) => c.dayScore));
   const avg = Math.round(others.reduce((s, c) => s + c.dayScore, 0) / others.length);

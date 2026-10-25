@@ -30,23 +30,27 @@ export const COMMANDS: Command[] = [
   { action: 'log_dose', label: 'Log a dose', changesData: true, phrases: ['log a dose', 'log dose', 'log my dose', 'i took my medicine', 'i took my pills', 'dose taken', 'took my dose'] },
 ];
 
-/** Below this score we refuse instead of guessing. */
+/** At least this share of a phrase's words must be heard, or we refuse instead of guessing. */
 export const CONFIDENCE_THRESHOLD = 0.8;
 /** If the second-best action is this close to the best, it's ambiguous: refuse. */
 export const AMBIGUITY_MARGIN = 0.1;
+/** Longer phrases that fully match beat shorter ones ("add a medication" beats "medications"). */
+const SPECIFICITY_BONUS = 0.15;
 
 // Small words that don't change the meaning ("please open my settings" = "settings").
 const FILLER = new Set([
   'a', 'an', 'the', 'my', 'me', 'to', 'please', 'can', 'could', 'would', 'you', 'i', 'im', 'am', 'want',
   'like', 'go', 'open', 'show', 'take', 'now', 'hey', 'parka', 'um', 'uh', 'just', 'up', 'of',
+  'hello', 'hi', 'okay', 'ok', 'so', 'and', 'for', 'it', 'this', 'that', 'let', 'lets', 'need',
 ]);
 
 export type Match = { action: VoiceAction; label: string; changesData: boolean; confidence: number };
 
 /**
  * Match a transcript to a command.
- * Each phrase gets a score from 0 to 1: how well its words cover what was said, and how much of
- * what was said they explain. Small spelling differences ("medication" vs "medications") still count.
+ * A phrase matches when (almost) all of its words were said, anywhere in the sentence, so
+ * "hello, can you open my medications" still works. Small spelling differences
+ * ("medication" vs "medications") still count.
  */
 export function matchCommand(transcript: string): Match | null {
   const said = meaningfulWords(transcript);
@@ -59,7 +63,7 @@ export function matchCommand(transcript: string): Match | null {
   })).sort((a, b) => b.score - a.score);
 
   const [best, second] = scored;
-  if (best.score < CONFIDENCE_THRESHOLD) return null; // not sure enough
+  if (best.score === 0) return null; // no command heard
   if (second && best.score - second.score < AMBIGUITY_MARGIN) return null; // two actions fit
 
   const { action, label, changesData } = best.command;
@@ -70,19 +74,18 @@ export function matchCommand(transcript: string): Match | null {
 export function meaningfulWords(text: string): string[] {
   return text
     .toLowerCase()
-    .replace(/'/g, '')
+    .replace(/['’‘`]/g, '') // "I'm" and "I’m" -> "im"
     .replace(/[^a-z0-9]+/g, ' ')
     .split(' ')
     .filter((w) => w.length > 0 && !FILLER.has(w));
 }
 
-/** F-score: how many phrase words were said (recall) and how many said words belong to the phrase (precision). */
+/** How much of the phrase was heard (0 to 1), plus a bonus for longer phrases. 0 if too little was heard. */
 function phraseScore(phrase: string[], said: string[]): number {
   if (phrase.length === 0) return 0;
-  const recall = average(phrase.map((p) => bestSimilarity(p, said)));
-  const precision = average(said.map((s) => bestSimilarity(s, phrase)));
-  if (recall + precision === 0) return 0;
-  return (2 * recall * precision) / (recall + precision);
+  const heard = average(phrase.map((p) => bestSimilarity(p, said)));
+  if (heard < CONFIDENCE_THRESHOLD) return 0;
+  return heard + SPECIFICITY_BONUS * (phrase.length - 1);
 }
 
 function bestSimilarity(word: string, words: string[]): number {

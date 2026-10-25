@@ -4,6 +4,7 @@ import { band, useBandStatus } from '../band';
 import { Screen } from '../components/Screen';
 import { Button, Card, Gap, Row, T } from '../components/ui';
 import { useNow } from '../hooks/useNow';
+import { isRated } from '../logic/checkin';
 import { displayStatus, nextReminder } from '../logic/reminders';
 import { dateKey, formatDose, formatTime, timeOf } from '../logic/time';
 import { ScreenProps } from '../navigation/types';
@@ -24,7 +25,7 @@ export function DashboardScreen({ navigation }: ScreenProps<'Dashboard'>) {
   const name = useApp((s) => s.profile?.name);
   const day = useApp((s) => s.day);
   const medications = useApp((s) => s.medications);
-  const checkedInToday = useApp((s) => s.checkIns.some((c) => c.date === dateKey(now)));
+  const checkedInToday = useApp((s) => isRated(s.checkIns.find((c) => c.date === dateKey(now))));
   const metronomeToday = useApp((s) => s.metronomeStarts.filter((m) => dateKey(new Date(m.timestamp)) === dateKey(now)).length);
   const [message, setMessage] = useState<string | null>(null);
 
