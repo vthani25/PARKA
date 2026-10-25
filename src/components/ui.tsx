@@ -125,13 +125,13 @@ export function Button({ label, onPress, variant = 'pine', icon, accessibilityLa
         { backgroundColor: bg, minHeight: size === 'large' ? BUTTON_HEIGHT : TOUCH_TARGET },
         variant === 'outline' && { borderWidth: 3, borderColor: colors.pine },
         highContrast && { borderWidth: 3, borderColor: colors.black },
-        disabled && { opacity: 0.45 },
+        disabled && { backgroundColor: colors.pineTint, borderWidth: 2, borderColor: colors.muted }, // solid, so nothing shows through
         pressed && { opacity: 0.8 },
         style,
       ]}
     >
       {icon && <Image source={icon} style={styles.buttonIcon} resizeMode="contain" accessibilityIgnoresInvertColors />}
-      <T size={size === 'large' ? 'large' : 'body'} bold color={fg} center style={{ flexShrink: 1 }}>
+      <T size={size === 'large' ? 'large' : 'body'} bold color={disabled ? colors.muted : fg} center style={{ flexShrink: 1 }}>
         {label}
       </T>
     </Pressable>

@@ -141,6 +141,7 @@ export async function cancelDoseNotification(date: string, time: string) {
   await Notifications.cancelScheduledNotificationAsync(`${DOSE_PREFIX}${date}-${time}`).catch(() => {});
 }
 
+/** A short confirmation. Uses one id, so a new one replaces the last instead of piling up. */
 export async function showMessage(title: string, body: string) {
-  await Notifications.scheduleNotificationAsync({ content: { title, body }, trigger: { channelId: WAKE_CHANNEL } });
+  await Notifications.scheduleNotificationAsync({ identifier: 'parka-message', content: { title, body }, trigger: { channelId: WAKE_CHANNEL } });
 }

@@ -11,8 +11,10 @@ export async function confirmAwake(at = new Date()): Promise<string> {
   const day = useApp.getState().markAwake(at);
   await scheduleDoseNotifications();
   await band.setReminders(todaysBandTimes()); // queued if the band is disconnected
-  const first = nextReminder(day.reminders, timeOf(at));
-  return first ? `Reminders set. First dose at ${formatTime(first.time)}.` : 'Reminders set.';
+  const next = nextReminder(day.reminders, timeOf(at));
+  if (!next) return 'Reminders set.';
+  const word = day.reminders.some((r) => r.status === 'taken') ? 'Next' : 'First';
+  return `Reminders set. ${word} dose at ${formatTime(next.time)}.`;
 }
 
 /** Log the dose closest to now (button, voice or band). Returns a sentence to show or speak. */

@@ -25,7 +25,7 @@ export async function handleNotificationAction(response: Notifications.Notificat
   if (response.actionIdentifier === ACTION_AWAKE) {
     const message = await confirmAwake(new Date());
     await Notifications.dismissNotificationAsync(request.identifier).catch(() => {});
-    await showMessage('PARKA', message);
+    await showMessage('Good morning', message);
   }
 
   if (response.actionIdentifier === ACTION_TOOK_DOSE && data.date && data.time) {
