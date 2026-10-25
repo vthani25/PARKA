@@ -27,7 +27,7 @@ export function OnboardingScreen({ navigation, route }: ScreenProps<'Onboarding'
   };
 
   return (
-    <Screen showMenu={false} headerTitle="ONBOARDING" simulatedBand={step === 4}>
+    <Screen showMenu={false} headerTitle="ONBOARDING">
       <Label size="large">{`STEP ${step} of ${TOTAL_STEPS}`}</Label>
       {step === 1 && <NameStep onNext={next} />}
       {step === 2 && <DisplayStep onNext={next} />}
@@ -207,10 +207,6 @@ function BandStep({ onNext }: { onNext: () => void }) {
     <Card>
       <Heading size="heading">Connect your wristband</Heading>
       <T size="large">Press the big button on your PARKA band once, then tap Connect.</T>
-      <Gap />
-      <T size="body" color={colors.muted}>
-        This version uses a simulated band. No real wristband is connected.
-      </T>
       <Gap size="lg" />
       {status.connected ? (
         <>

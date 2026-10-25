@@ -43,7 +43,7 @@ export function DashboardScreen({ navigation }: ScreenProps<'Dashboard'>) {
   const clock = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/, '');
 
   return (
-    <Screen showBack={false} simulatedBand>
+    <Screen showBack={false}>
       <Card style={{ alignItems: 'center', paddingVertical: spacing.md }}>
         <T size="clock" bold center accessibilityRole="header">
           {clock}
@@ -147,7 +147,7 @@ function BandStatusCard() {
         <View style={[styles.dot, { backgroundColor: status.connected ? colors.pine : colors.red }]} />
         <View style={{ flex: 1 }}>
           <T size="body" bold>
-            Wristband (simulated)
+            Wristband
           </T>
           <T size="large">{status.connected ? `Connected${synced}` : 'Not connected'}</T>
           {status.connected && status.battery !== undefined && <T size="small" color={colors.muted}>{`Battery ${status.battery}%`}</T>}

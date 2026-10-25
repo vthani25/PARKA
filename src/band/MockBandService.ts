@@ -143,7 +143,7 @@ export class MockBandService implements BandService {
   /** Connect and run a full sync (sync.ts). */
   async connect() {
     this.band.connected = true;
-    this.note('Connected to simulated band');
+    this.note('Connected to band');
     const result = await syncWithBand(this.link, this.pending, this.seen);
     this.pending = {};
     this.clockOffsetSeconds = result.clockCorrected ? 0 : result.clockOffsetSeconds;

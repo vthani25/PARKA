@@ -10,7 +10,7 @@ import { ScreenProps } from '../../navigation/types';
 import { scheduleDoseNotifications } from '../../services/notifications';
 import { useDraft } from '../../state/draft';
 import { useApp } from '../../state/store';
-import { colors, RADIUS, spacing, TOUCH_TARGET } from '../../theme/tokens';
+import { colors, spacing, TOUCH_TARGET } from '../../theme/tokens';
 import { Reminder } from '../../types';
 
 const pills = require('../../assets/pills.png');
@@ -68,11 +68,17 @@ export function ManageMedsScreen({ navigation }: ScreenProps<'ManageMeds'>) {
           <T size="large">No medications yet. Tap Scan Pills to add one.</T>
         </Card>
       ) : (
-        <Card style={{ padding: 0, overflow: 'hidden' }}>
+        <Card style={styles.table}>
           <View style={[styles.tr, styles.th]}>
-            <T size="body" bold style={styles.colMed}>Medication</T>
-            <T size="body" bold style={styles.colTime}>Time Today</T>
-            <T size="body" bold style={styles.colTaken}>Taken at</T>
+            <View style={[styles.cell, styles.colMed]}>
+              <T size="body" bold center>Medication</T>
+            </View>
+            <View style={[styles.cell, styles.colTime]}>
+              <T size="body" bold center>Time Today</T>
+            </View>
+            <View style={[styles.cell, styles.colTaken, styles.lastCell]}>
+              <T size="body" bold center>Taken at</T>
+            </View>
           </View>
           {PERIODS.map((p) => {
             const rows = day.reminders.filter((r) => toMinutes(r.time) >= p.from && toMinutes(r.time) < p.to);
@@ -93,17 +99,17 @@ export function ManageMedsScreen({ navigation }: ScreenProps<'ManageMeds'>) {
                       onPress={() => navigation.navigate('MedDetail', { id: r.medicationId })}
                       label={`${medName(r.medicationId)}, ${formatDose(r.dose)}, ${formatTime(r.time)}, ${status.word}${at ? ` at ${formatTime(at)}` : ''}. Opens details.`}
                     >
-                      <View style={styles.colMed}>
+                      <View style={[styles.cell, styles.colMed]}>
                         <T size="body" bold>
                           {medName(r.medicationId)}
                         </T>
                         <T size="small">{formatDose(r.dose)}</T>
                       </View>
-                      <View style={styles.colTime}>
+                      <View style={[styles.cell, styles.colTime]}>
                         <T size="body">{formatTime(r.time)}</T>
                         {r.time !== r.usualTime && <T size="small" color={colors.muted}>{`usually ${formatTime(r.usualTime)}`}</T>}
                       </View>
-                      <View style={styles.colTaken}>
+                      <View style={[styles.cell, styles.colTaken, styles.lastCell]}>
                         <T size="body" bold color={status.color}>{`${status.icon} ${status.word}`}</T>
                         {at && <T size="small">{formatTime(at)}</T>}
                       </View>
@@ -220,9 +226,13 @@ export function DeleteMedScreen({ navigation, route }: ScreenProps<'DeleteMed'>)
 const styles = StyleSheet.create({
   nextCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   divider: { width: 4, alignSelf: 'stretch', backgroundColor: colors.text, borderRadius: 2 },
-  tr: { flexDirection: 'row', alignItems: 'center', minHeight: TOUCH_TARGET + 8, borderBottomWidth: 2, borderBottomColor: colors.text, paddingHorizontal: spacing.sm, gap: spacing.sm },
-  th: { backgroundColor: colors.pineTint, borderTopLeftRadius: RADIUS, borderTopRightRadius: RADIUS },
-  period: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, backgroundColor: colors.background },
+  // Table drawn as a full grid, like the Manage Meds mockup: 2 dp lines everywhere.
+  table: { padding: 0, overflow: 'hidden', borderWidth: 2, borderColor: colors.text, borderRadius: 0 },
+  tr: { flexDirection: 'row', alignItems: 'stretch', minHeight: TOUCH_TARGET + 8, borderBottomWidth: 2, borderBottomColor: colors.text },
+  th: { backgroundColor: colors.pineTint },
+  cell: { justifyContent: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, borderRightWidth: 2, borderRightColor: colors.text },
+  lastCell: { borderRightWidth: 0 },
+  period: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, backgroundColor: colors.background, borderBottomWidth: 2, borderBottomColor: colors.text },
   colMed: { flex: 1.4 },
   colTime: { flex: 1 },
   colTaken: { flex: 1.1 },

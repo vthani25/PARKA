@@ -1,9 +1,9 @@
 import React from 'react';
 import { Image, ImageSourcePropType, Pressable, StyleSheet, View } from 'react-native';
 import { Screen } from '../components/Screen';
-import { T, useSteadyPress } from '../components/ui';
+import { Card, Divider, T, useSteadyPress } from '../components/ui';
 import { goTo, RootStackParamList, ScreenProps } from '../navigation/types';
-import { colors, RADIUS, spacing } from '../theme/tokens';
+import { spacing } from '../theme/tokens';
 
 const ITEMS: { label: string; icon: ImageSourcePropType; route: keyof RootStackParamList }[] = [
   { label: 'Return Home', icon: require('../assets/sidebar1_icon.png'), route: 'Dashboard' },
@@ -16,16 +16,20 @@ const ITEMS: { label: string; icon: ImageSourcePropType; route: keyof RootStackP
 export function MenuScreen({ navigation }: ScreenProps<'Menu'>) {
   return (
     <Screen showMenu={false}>
-      {ITEMS.map((item) => (
-        <MenuRow
-          key={item.route}
-          {...item}
-          onPress={() => {
-            if (item.route === 'Dashboard') goTo('Dashboard');
-            else navigation.replace(item.route as 'ManageMeds');
-          }}
-        />
-      ))}
+      <Card style={styles.panel}>
+        {ITEMS.map((item) => (
+          <View key={item.route}>
+            <MenuRow
+              {...item}
+              onPress={() => {
+                if (item.route === 'Dashboard') goTo('Dashboard');
+                else navigation.replace(item.route as 'ManageMeds');
+              }}
+            />
+            <Divider thick />
+          </View>
+        ))}
+      </Card>
     </Screen>
   );
 }
@@ -45,18 +49,8 @@ function MenuRow({ label, icon, onPress }: { label: string; icon: ImageSourcePro
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.card,
-    borderRadius: RADIUS,
-    borderBottomWidth: 4,
-    borderBottomColor: colors.text,
-    minHeight: 96,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
-  },
+  panel: { paddingVertical: 0, paddingHorizontal: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 104 },
   iconBox: { width: 80, alignItems: 'center' },
   icon: { width: 72, height: 64 },
 });

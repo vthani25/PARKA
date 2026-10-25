@@ -211,15 +211,9 @@ export function Choice({ label, selected, onPress, detail }: { label: string; se
   );
 }
 
-/** "Simulated band" label for every screen that uses the mock band. */
-export function SimulatedBandTag() {
-  return (
-    <View style={styles.simTag} accessible accessibilityLabel="Simulated band. No real wristband is connected.">
-      <T size="small" bold color={colors.white}>
-        Simulated band
-      </T>
-    </View>
-  );
+/** Full-width horizontal line between rows. Same weight everywhere. */
+export function Divider({ thick }: { thick?: boolean }) {
+  return <View style={[styles.divider, thick && styles.dividerThick]} accessibilityElementsHidden importantForAccessibility="no" />;
 }
 
 export function TextField({
@@ -301,6 +295,8 @@ const styles = StyleSheet.create({
   choiceSelected: { borderColor: colors.pine, borderWidth: 4, backgroundColor: colors.pineTint },
   checkBox: { width: 36, height: 36, borderRadius: 8, borderWidth: 3, borderColor: colors.pine, alignItems: 'center', justifyContent: 'center' },
   checkMark: { color: colors.white, fontSize: 24, fontFamily: fonts.bold, lineHeight: 28 },
+  divider: { height: 2, alignSelf: 'stretch', backgroundColor: colors.text },
+  dividerThick: { height: 4 },
   input: {
     minHeight: TOUCH_TARGET + 8,
     borderWidth: 2,
@@ -312,5 +308,4 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.white,
   },
-  simTag: { alignSelf: 'center', backgroundColor: colors.red, borderRadius: 999, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, marginBottom: spacing.md },
 });

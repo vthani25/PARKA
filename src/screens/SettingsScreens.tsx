@@ -218,7 +218,7 @@ export function BandDebugScreen() {
   };
 
   return (
-    <Screen simulatedBand>
+    <Screen>
       <Heading>Band debug panel</Heading>
       <Card>
         <T size="large" bold>

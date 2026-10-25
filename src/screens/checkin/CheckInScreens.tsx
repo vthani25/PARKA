@@ -273,7 +273,7 @@ export function OffHoursScreen({ navigation }: ScreenProps<'OffHours'>) {
   };
 
   return (
-    <Screen simulatedBand={bandHours.length > 0} footer={<Button label="Next" onPress={next} />}>
+    <Screen footer={<Button label="Next" onPress={next} />}>
       <Heading>When did you feel off today?</Heading>
       {bandHours.length > 0 && (
         <Card tint>
@@ -440,5 +440,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hourSelected: { backgroundColor: colors.pine },
-  summaryRow: { borderBottomWidth: 1, borderBottomColor: colors.muted, paddingVertical: spacing.sm },
+  summaryRow: { borderBottomWidth: 2, borderBottomColor: colors.text, paddingVertical: spacing.sm },
 });

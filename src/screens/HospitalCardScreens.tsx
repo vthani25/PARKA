@@ -184,5 +184,5 @@ export function HospitalCardEditScreen({ navigation }: ScreenProps<'HospitalCard
 const styles = StyleSheet.create({
   alert: { borderWidth: 4, borderColor: colors.red },
   field: { marginBottom: spacing.md },
-  medRow: { flexDirection: 'row', gap: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.muted, paddingVertical: spacing.sm },
+  medRow: { flexDirection: 'row', gap: spacing.sm, borderBottomWidth: 2, borderBottomColor: colors.text, paddingVertical: spacing.sm },
 });

@@ -12,6 +12,6 @@ export interface BandService {
   status(): BandStatus;
   /** Called whenever status() changes, so screens can refresh. */
   onStatusChange(cb: () => void): () => void;
-  /** True for the simulated band: screens that use it show "Simulated band". */
+  /** True for the simulated band (MockBandService). */
   readonly simulated: boolean;
 }
