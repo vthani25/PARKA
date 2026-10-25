@@ -23,3 +23,9 @@ describe('parseLabel', () => {
     expect(parseLabel(['Fresh Market', 'Total 12.99']).name).toBeUndefined();
   });
 });
+
+describe('parseLabel directions', () => {
+  it('prefers the "take" line over the strength line', () => {
+    expect(parseLabel(['CARBIDOPA/LEVODOPA', '25/100 MG TABLET', 'TAKE 1 TABLET BY MOUTH']).directions).toBe('TAKE 1 TABLET BY MOUTH');
+  });
+});

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { Screen } from '../../components/Screen';
-import { Button, Card, Choice, Gap, Heading, T } from '../../components/ui';
+import { Button, Card, Choice, Gap, Heading, Label, T } from '../../components/ui';
 import { dailyReportHtml, dailyReportText, weekDates, weeklyReportHtml, weeklyReportText } from '../../logic/reports';
 import { atTime, dateKey } from '../../logic/time';
 import { ScreenProps } from '../../navigation/types';
@@ -72,9 +72,7 @@ export function ReportsScreen({ navigation }: ScreenProps<'Reports'>) {
         <T size="body">{text}</T>
       </Card>
 
-      <T size="large" bold accessibilityRole="header" style={{ marginBottom: spacing.sm }}>
-        Send it
-      </T>
+      <Label size="large">Send it</Label>
       {recipients.length === 0 ? (
         <Card tint>
           <T size="body">Add a caregiver or doctor in Settings to text them reports.</T>
@@ -93,9 +91,9 @@ export function ReportsScreen({ navigation }: ScreenProps<'Reports'>) {
       )}
       <Button label="Share PDF" variant="red" onPress={pdf} accessibilityHint="Opens the share menu, for email or other apps" />
       {error && <T size="body" color={colors.red}>{error}</T>}
-      <T size="small" color={colors.muted}>
+      <Label size="small" bold={false}>
         PARKA never sends anything by itself. You choose who gets it and tap send.
-      </T>
+      </Label>
     </Screen>
   );
 }

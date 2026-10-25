@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { band, useBandStatus } from '../band';
 import { Screen } from '../components/Screen';
-import { Button, Card, Choice, Gap, Heading, T, TextField } from '../components/ui';
+import { Button, Card, Choice, Gap, Heading, Label, T, TextField } from '../components/ui';
 import { ScreenProps } from '../navigation/types';
 import { requestExactAlarmPermission, requestNotificationPermission, scheduleWakeNotification } from '../services/notifications';
 import { useApp } from '../state/store';
@@ -28,8 +28,7 @@ export function OnboardingScreen({ navigation, route }: ScreenProps<'Onboarding'
 
   return (
     <Screen showMenu={false} headerTitle="ONBOARDING" simulatedBand={step === 4}>
-      <T size="large" bold center>{`STEP ${step} of ${TOTAL_STEPS}`}</T>
-      <Gap size="sm" />
+      <Label size="large">{`STEP ${step} of ${TOTAL_STEPS}`}</Label>
       {step === 1 && <NameStep onNext={next} />}
       {step === 2 && <DisplayStep onNext={next} />}
       {step === 3 && <PermissionsStep onNext={next} />}

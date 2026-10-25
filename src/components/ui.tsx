@@ -59,9 +59,22 @@ export function T({ children, size = 'body', bold, color, center, style, accessi
 
 export function Heading({ children, size = 'title' }: { children: ReactNode; size?: keyof typeof textSizes }) {
   return (
-    <T size={size} bold center accessibilityRole="header" style={{ marginBottom: spacing.md }}>
-      {children}
-    </T>
+    <View style={styles.label}>
+      <T size={size} bold center accessibilityRole="header">
+        {children}
+      </T>
+    </View>
+  );
+}
+
+/** Small text that sits outside a card gets its own solid background (never text on the sky). */
+export function Label({ children, size = 'body', color, bold = true }: { children: ReactNode; size?: keyof typeof textSizes; color?: string; bold?: boolean }) {
+  return (
+    <View style={[styles.label, styles.smallLabel]}>
+      <T size={size} bold={bold} center color={color}>
+        {children}
+      </T>
+    </View>
   );
 }
 
@@ -256,6 +269,8 @@ export function Gap({ size = 'md' }: { size?: keyof typeof spacing }) {
 }
 
 const styles = StyleSheet.create({
+  label: { backgroundColor: colors.card, borderRadius: RADIUS, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.md },
+  smallLabel: { alignSelf: 'center', paddingVertical: spacing.xs },
   card: { backgroundColor: colors.card, borderRadius: RADIUS, padding: spacing.lg, marginBottom: spacing.md },
   button: {
     borderRadius: RADIUS,

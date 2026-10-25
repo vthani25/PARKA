@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { band, todaysBandTimes, useBandStatus } from '../band';
 import { FrameLogLine } from '../band/MockBandService';
 import { Screen } from '../components/Screen';
-import { Button, Card, Choice, Gap, Heading, Row, Stepper, T, TextField } from '../components/ui';
+import { Button, Card, Choice, Gap, Heading, Label, Row, Stepper, T, TextField } from '../components/ui';
 import { rebuildReminders } from '../logic/reminders';
 import { formatTime, fromMinutes } from '../logic/time';
 import { ScreenProps } from '../navigation/types';
@@ -144,7 +144,7 @@ export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
 
       {/* Long press the version number to open the band debug panel (developer only). */}
       <Pressable onLongPress={() => navigation.navigate('BandDebug')} delayLongPress={800} accessibilityLabel={`PARKA version ${Constants.expoConfig?.version ?? '1.0.0'}`}>
-        <T size="small" center color={colors.muted}>{`PARKA version ${Constants.expoConfig?.version ?? '1.0.0'}`}</T>
+        <Label size="small" bold={false}>{`PARKA version ${Constants.expoConfig?.version ?? '1.0.0'}`}</Label>
       </Pressable>
     </Screen>
   );
@@ -168,9 +168,7 @@ export function RecipientsScreen() {
   return (
     <Screen>
       <Heading>Report recipients</Heading>
-      <T size="body" style={{ marginBottom: spacing.md }}>
-        People you can text your reports to. PARKA never sends anything by itself.
-      </T>
+      <Label bold={false}>People you can text your reports to. PARKA never sends anything by itself.</Label>
       {recipients.map((r) => (
         <Card key={r.id}>
           <T size="large" bold>{`${r.name}${r.relationship ? ` (${r.relationship})` : ''}`}</T>

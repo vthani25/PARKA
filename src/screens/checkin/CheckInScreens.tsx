@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { SmileyBadge, SmileyPicker } from '../../components/Smileys';
-import { Button, Card, Choice, Gap, Heading, Row, Stepper, T, TextField, useSteadyPress } from '../../components/ui';
+import { Button, Card, Choice, Gap, Heading, Label, Row, Stepper, T, TextField, useSteadyPress } from '../../components/ui';
 import { useNow } from '../../hooks/useNow';
 import {
   compareToHistory,
@@ -123,9 +123,7 @@ export function ChooseTrackablesScreen({ navigation, route }: ScreenProps<'Choos
       </Card>
       {(['measured', 'felt', 'auto'] as const).map((kind) => (
         <View key={kind}>
-          <T size="large" bold accessibilityRole="header" style={{ marginVertical: spacing.sm }}>
-            {kind === 'measured' ? 'Things you measure' : kind === 'felt' ? 'How you feel' : 'Automatic'}
-          </T>
+          <Label size="large">{kind === 'measured' ? 'Things you measure' : kind === 'felt' ? 'How you feel' : 'Automatic'}</Label>
           {all
             .filter((t) => t.kind === kind)
             .map((t) => {
@@ -201,7 +199,7 @@ export function CheckInItemScreen({ navigation, route }: ScreenProps<'CheckInIte
 
   return (
     <Screen footer={<Button label="Next" onPress={next} disabled={!canGoOn} />}>
-      <T size="body" bold center color={colors.muted}>{`${index + 1} of ${trackables.length}`}</T>
+      <Label>{`${index + 1} of ${trackables.length}`}</Label>
       <Heading>{t.label}</Heading>
 
       {t.kind === 'measured' && (

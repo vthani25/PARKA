@@ -39,7 +39,8 @@ export function parseLabel(lines: string[]): LabelResult {
   const strength = strengthMatch ? `${strengthMatch[1].replace(/\s+/g, '')} ${strengthMatch[2].toLowerCase()}` : undefined;
 
   // 3. Directions: the first line that reads like instructions. Shown to the person, never used to set doses.
-  const directions = lines.find((l) => DIRECTIONS.test(l) && l.trim().length > 8)?.trim();
+  const candidates = lines.map((l) => l.trim()).filter((l) => DIRECTIONS.test(l) && !STRENGTH.test(l) && l.length > 8);
+  const directions = candidates.find((l) => /\btake\b/i.test(l)) ?? candidates[0];
 
   return { name, strength, directions, rawText };
 }

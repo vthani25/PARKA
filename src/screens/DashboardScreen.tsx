@@ -61,7 +61,7 @@ export function DashboardScreen({ navigation }: ScreenProps<'Dashboard'>) {
           {next ? (
             <>
               {nextSlot.map((r) => (
-                <View key={r.medicationId} style={{ marginBottom: spacing.xs }}>
+                <View key={`${r.medicationId}-${r.usualTime}`} style={{ marginBottom: spacing.xs }}>
                   <T size="large" bold>
                     {medName(r.medicationId)}
                   </T>
