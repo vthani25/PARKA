@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "PARKA",
+    "slug": "parka",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FAF7F2",
+    "android": {
+      "package": "com.parka.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FAF7F2",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.VIBRATE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#FAF7F2"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#375a41"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "PARKA uses the camera to read the label on your pill bottle.",
+          "photosPermission": "PARKA can read the label from a photo of your pill bottle."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "PARKA listens when you tap the microphone so you can control the app by voice."
+        }
+      ],
+      "expo-font",
+      "expo-sharing",
+      "@react-native-community/datetimepicker",
+      "expo-build-properties"
+    ]
+  }
+}

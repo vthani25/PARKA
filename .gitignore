@@ -54,3 +54,8 @@ Thumbs.db
 *.pem
 .vscode/
 .idea/
+
+# Tool files from the scaffold
+AGENTS.md
+*.tsbuildinfo
+.kotlin/
