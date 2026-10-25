@@ -21,7 +21,7 @@ export const STATUS_LABEL: Record<DisplayStatus, { icon: string; word: string; c
   taken: { icon: '✓', word: 'Taken', color: colors.pine },
   due: { icon: '⚠', word: 'Due now', color: colors.red },
   next: { icon: '➜', word: 'Next', color: colors.text },
-  upcoming: { icon: '•', word: 'Later', color: colors.muted },
+  upcoming: { icon: '○', word: 'Upcoming', color: colors.muted },
   missed: { icon: '✗', word: 'Missed', color: colors.red },
 };
 
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   cell: { justifyContent: 'center', paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, borderRightWidth: 2, borderRightColor: colors.text },
   lastCell: { borderRightWidth: 0 },
   period: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, backgroundColor: colors.background, borderBottomWidth: 2, borderBottomColor: colors.text },
-  colMed: { flex: 1.4 },
+  colMed: { flex: 1.3 },
   colTime: { flex: 1 },
-  colTaken: { flex: 1.1 },
+  colTaken: { flex: 1.35 },
 });
