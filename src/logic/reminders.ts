@@ -1,4 +1,4 @@
-import { Reminder, Schedule } from '../types';
+import { DoseLog, Reminder, Schedule } from '../types';
 import { fromMinutes, MINUTES_PER_DAY, toMinutes } from './time';
 
 /** A dose more than this many minutes late, and not logged, counts as missed. */
@@ -89,6 +89,13 @@ export function nearestPendingTime(reminders: Reminder[], nowTime: string): stri
     if (!best || Math.abs(toMinutes(r.time) - now) < Math.abs(toMinutes(best.time) - now)) best = r;
   }
   return best?.time;
+}
+
+/** The dose log entry for one of today's reminders, if it was taken. */
+export function findLog(logs: DoseLog[], date: string, r: Reminder): DoseLog | undefined {
+  return logs.find(
+    (l) => l.date === date && l.medicationId === r.medicationId && (l.usualTime ? l.usualTime === r.usualTime : l.scheduledTime === r.time),
+  );
 }
 
 export function byTime(a: { time: string }, b: { time: string }): number {

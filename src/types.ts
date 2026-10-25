@@ -15,7 +15,8 @@ export type DoseLog = {
   id: string;
   medicationId: string;
   date: string; // "YYYY-MM-DD"
-  scheduledTime: string; // "HH:mm" (today's reminder time)
+  scheduledTime: string; // "HH:mm" (today's reminder time when it was logged)
+  usualTime?: string; // "HH:mm" slot in the saved schedule, stays the same if "I'm awake" moves the time
   loggedAt: number; // epoch ms
   source: 'band' | 'app';
 };

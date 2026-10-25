@@ -60,3 +60,11 @@ describe('hoursFromLongPresses', () => {
     expect(hoursFromLongPresses([t('09:10'), t('09:40'), t('15:05'), yesterday], DAY)).toEqual([9, 15]);
   });
 });
+
+describe('medsOnTimeScore after "I\'m awake" moves a taken dose', () => {
+  it('still finds the log by its usual slot', () => {
+    const moved: Reminder[] = [{ medicationId: 'm', usualTime: '08:00', time: '07:00', dose: 1, status: 'taken' }];
+    const log: DoseLog = { id: 'a', medicationId: 'm', date: DAY, scheduledTime: '08:00', usualTime: '08:00', loggedAt: atTime(DAY, '08:02').getTime(), source: 'band' };
+    expect(medsOnTimeScore(moved, [log], DAY, atTime(DAY, '12:00'))?.score).toBe(5);
+  });
+});

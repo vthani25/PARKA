@@ -1,4 +1,5 @@
 import { CheckIn, CheckInEntry, DoseLog, Reminder, Trackable } from '../types';
+import { findLog } from './reminders';
 import { atTime } from './time';
 
 export const MIN_TRACKABLES = 5;
@@ -55,8 +56,8 @@ export function medsOnTimeScore(reminders: Reminder[], logs: DoseLog[], day: str
   let within15 = 0;
   let lateOrMissed = 0;
   for (const r of due) {
-    const log = logs.find((l) => l.date === day && l.medicationId === r.medicationId && l.scheduledTime === r.time);
-    const minutesLate = log ? Math.abs(log.loggedAt - atTime(day, r.time).getTime()) / 60000 : Infinity;
+    const log = findLog(logs, day, r);
+    const minutesLate = log ? Math.abs(log.loggedAt - atTime(day, log.scheduledTime).getTime()) / 60000 : Infinity;
     if (minutesLate <= 5) within5++;
     if (minutesLate <= 15) within15++;
     else lateOrMissed++;

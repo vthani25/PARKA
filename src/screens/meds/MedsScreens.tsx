@@ -4,7 +4,7 @@ import { band, todaysBandTimes } from '../../band';
 import { Screen } from '../../components/Screen';
 import { Button, Card, Gap, Heading, T, useSteadyPress } from '../../components/ui';
 import { useNow } from '../../hooks/useNow';
-import { DisplayStatus, displayStatus, nextReminder } from '../../logic/reminders';
+import { DisplayStatus, displayStatus, findLog, nextReminder } from '../../logic/reminders';
 import { formatDose, formatTime, timeOf, toMinutes } from '../../logic/time';
 import { ScreenProps } from '../../navigation/types';
 import { scheduleDoseNotifications } from '../../services/notifications';
@@ -42,7 +42,7 @@ export function ManageMedsScreen({ navigation }: ScreenProps<'ManageMeds'>) {
   const medName = (id: string) => medications.find((m) => m.id === id)?.name ?? 'Medication';
   const next = nextReminder(day.reminders, nowTime);
   const takenAt = (r: Reminder) => {
-    const log = doseLogs.find((l) => l.date === day.date && l.medicationId === r.medicationId && l.scheduledTime === r.time);
+    const log = findLog(doseLogs, day.date, r);
     return log ? timeOf(new Date(log.loggedAt)) : undefined;
   };
 

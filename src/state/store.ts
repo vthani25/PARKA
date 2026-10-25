@@ -173,6 +173,7 @@ export const useApp = create<AppState>()(
           medicationId: r.medicationId,
           date: day.date,
           scheduledTime: r.time,
+          usualTime: r.usualTime,
           loggedAt: at.getTime(),
           source,
         }));

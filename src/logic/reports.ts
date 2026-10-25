@@ -3,6 +3,7 @@
 
 import { CheckIn, DayState, DoseLog, HospitalCard, Medication, Schedule, Trackable } from '../types';
 import { MEDS_ON_TIME_ID, offHoursByTimeOfDay, SCORE_WORDS } from './checkin';
+import { findLog } from './reminders';
 import { addDays, atTime, formatDay, formatDose, formatHour, formatTime, timeOf } from './time';
 
 export type ReportData = {
@@ -30,7 +31,7 @@ function entryText(d: ReportData, e: CheckIn['entries'][number]) {
 function medicationRows(d: ReportData, date: string) {
   const reminders = d.day.date === date ? d.day.reminders : [];
   return reminders.map((r) => {
-    const log = d.doseLogs.find((l) => l.date === date && l.medicationId === r.medicationId && l.scheduledTime === r.time);
+    const log = findLog(d.doseLogs, date, r);
     return {
       time: formatTime(r.time),
       medication: medName(d, r.medicationId),
