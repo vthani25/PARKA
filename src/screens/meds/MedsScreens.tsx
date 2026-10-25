@@ -21,7 +21,7 @@ export const STATUS_LABEL: Record<DisplayStatus, { icon: string; word: string; c
   taken: { icon: '✓', word: 'Taken', color: colors.pine },
   due: { icon: '⚠', word: 'Due now', color: colors.red },
   next: { icon: '➜', word: 'Next', color: colors.text },
-  upcoming: { icon: '○', word: 'Upcoming', color: colors.muted },
+  upcoming: { icon: '•', word: 'Later', color: colors.muted },
   missed: { icon: '✗', word: 'Missed', color: colors.red },
 };
 

@@ -17,7 +17,7 @@ export function MenuScreen({ navigation }: ScreenProps<'Menu'>) {
   return (
     <Screen showMenu={false}>
       <Card style={styles.panel}>
-        {ITEMS.map((item) => (
+        {ITEMS.map((item, i) => (
           <View key={item.route}>
             <MenuRow
               {...item}
@@ -26,7 +26,7 @@ export function MenuScreen({ navigation }: ScreenProps<'Menu'>) {
                 else navigation.replace(item.route as 'ManageMeds');
               }}
             />
-            <Divider thick />
+            {i < ITEMS.length - 1 && <Divider thick />}
           </View>
         ))}
       </Card>
